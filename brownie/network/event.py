@@ -80,7 +80,7 @@ class EventDict:
         return len(self._ordered)
 
     def __str__(self) -> str:
-        return str(dict((k, [i[0] for i in v._ordered]) for k, v in self._dict.items()))
+        return str({k: [i[0] for i in v._ordered] for k, v in self._dict.items()})
 
     def count(self, name: str) -> int:
         """EventDict.count(name) -> integer -- return number of occurrences of name"""
@@ -233,8 +233,7 @@ def _decode_logs(logs: List, contracts: Optional[Dict] = None) -> EventDict:
         topics_map = _deployment_topics.get(address, _topics)
         for item in log_slice:
             if contracts and contracts[item.address]:
-                note = _decode_ds_note(item, contracts[item.address])
-                if note:
+                if note := _decode_ds_note(item, contracts[item.address]):
                     events.append(note)
                     continue
             try:

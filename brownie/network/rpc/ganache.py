@@ -109,10 +109,12 @@ def launch(cmd: str, **kwargs: Dict) -> None:
 def get_ganache_version(ganache_executable: str) -> int:
     ganache_version_proc = psutil.Popen([ganache_executable, "--version"], stdout=PIPE)
     ganache_version_stdout, _ = ganache_version_proc.communicate()
-    ganache_version_match = re.search(r"v([0-9]+)\.", ganache_version_stdout.decode())
-    if not ganache_version_match:
-        raise ValueError("could not read ganache version: {}".format(ganache_version_stdout))
-    return int(ganache_version_match.group(1))
+    if ganache_version_match := re.search(
+        r"v([0-9]+)\.", ganache_version_stdout.decode()
+    ):
+        return int(ganache_version_match[1])
+    else:
+        raise ValueError(f"could not read ganache version: {ganache_version_stdout}")
 
 
 def on_connection() -> None:
@@ -162,7 +164,7 @@ def unlock_account(address: str) -> None:
 
 
 def _validate_cmd_settings(cmd_settings: dict) -> dict:
-    ganache_keys = set(k for f in CLI_FLAGS.values() for k in f.keys())
+    ganache_keys = {k for f in CLI_FLAGS.values() for k in f.keys()}
 
     CMD_TYPES = {
         "port": int,
@@ -180,7 +182,7 @@ def _validate_cmd_settings(cmd_settings: dict) -> dict:
     for cmd, value in cmd_settings.items():
         if (
             cmd in ganache_keys
-            and cmd in CMD_TYPES.keys()
+            and cmd in CMD_TYPES
             and not isinstance(value, CMD_TYPES[cmd])
         ):
             raise TypeError(

@@ -51,10 +51,10 @@ def run(
 
     try:
         module = _import_from_path(script)
-        name = module.__name__
-
         func = getattr(module, method_name, None)
         if not isinstance(func, FunctionType):
+            name = module.__name__
+
             raise AttributeError(f"Module '{name}' has no method '{method_name}'")
         try:
             module_path = Path(module.__file__).relative_to(Path(".").absolute())
@@ -157,10 +157,7 @@ def _get_ast_hash(path: str) -> str:
     base_path = str(check_for_project(path))
 
     for obj in [i for i in ast_list[0].body if isinstance(i, (ast.Import, ast.ImportFrom))]:
-        if isinstance(obj, ast.Import):
-            name = obj.names[0].name  # type: ignore
-        else:
-            name = obj.module  # type: ignore
+        name = obj.names[0].name if isinstance(obj, ast.Import) else obj.module
         try:
             origin = importlib.util.find_spec(name).origin  # type: ignore
         except Exception:
